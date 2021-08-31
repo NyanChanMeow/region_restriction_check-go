@@ -1,0 +1,23 @@
+{
+    "interval": 300,
+    "log": {
+        "level": "debug",
+        "filename": "/var/log/region_restriction_check/log.log",
+        "max_size": 128,
+        "max_age": 31,
+        "max_backups": 3
+    },
+    "tasks": {
+        "Test": {
+            "dns": "8.8.8.8:53",
+            "medias": {
+                "PCRJP": {
+                    "interval": 300
+                },
+                "UMAJP": {
+                    "enabled": false
+                }
+            }
+        }
+    }
+}

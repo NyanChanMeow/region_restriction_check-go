@@ -1,8 +1,14 @@
 package medias
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"io"
+	"net"
+	"strings"
+	"text/tabwriter"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -15,6 +21,8 @@ const (
 	CheckResultUnexpected  = "unexpected"
 	CheckResultFailed      = "failed"
 	CheckResultOverseaOnly = "oversea_only"
+
+	printPadding = 48
 )
 
 type CheckResult struct {
@@ -22,6 +30,51 @@ type CheckResult struct {
 	Media  string
 	Region string
 	Error  error
+}
+
+type CheckResultSlice []*CheckResult
+
+func (c *CheckResultSlice) Len() int {
+	return len(*c)
+}
+
+func (c *CheckResultSlice) Swap(i, j int) {
+	(*c)[i], (*c)[j] = (*c)[j], (*c)[i]
+}
+
+func (c *CheckResultSlice) Less(i, j int) bool {
+	if (*c)[i].Region < (*c)[j].Region {
+		return true
+	} else if (*c)[i].Region == (*c)[j].Region {
+		return (*c)[i].Media < (*c)[j].Media
+	}
+	return false
+}
+
+func (c *CheckResultSlice) PrintTo(writer io.Writer) {
+	w := tabwriter.NewWriter(writer, 8, 8, 0, ' ', 0)
+	lastRegion := ""
+	for _, res := range *c {
+		if lastRegion != res.Region {
+			w.Flush()
+			fmt.Fprintf(writer, "\n==========[ %s ]==========\n", res.Region)
+			lastRegion = res.Region
+		}
+
+		s := HumanReadableNames[res.Media]
+		pad := printPadding - len(s)
+		for i := 0; i < pad; i++ {
+			s += " "
+		}
+		s += "\t"
+		s += strings.ToUpper(res.Result)
+
+		if res.Error != nil {
+			s += fmt.Sprintf(" (%s)", res.Error)
+		}
+		fmt.Fprintln(w, s)
+	}
+	w.Flush()
 }
 
 type Media struct {
@@ -86,7 +139,18 @@ func (m *Media) UnmarshalJSON(data []byte) error {
 }
 
 func (m *Media) Do() (*fasthttp.Response, error) {
-	client := fasthttp.Client{}
+	dialer := fasthttp.TCPDialer{
+		Resolver: &net.Resolver{
+			PreferGo:     true,
+			StrictErrors: false,
+			Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+				d := net.Dialer{}
+				m.Logger.Debugln("connecting to dns")
+				return d.DialContext(ctx, network, m.DNS)
+			},
+		},
+	}
+	client := fasthttp.Client{Dial: dialer.Dial}
 	client.NoDefaultUserAgentHeader = true
 
 	req := fasthttp.AcquireRequest()
@@ -106,6 +170,7 @@ func (m *Media) Do() (*fasthttp.Response, error) {
 		"user_agent":  string(req.Header.UserAgent()),
 		"timeout":     m.Timeout,
 		"status_code": 0,
+		"dns":         m.DNS,
 	})
 
 	resp := fasthttp.AcquireResponse()

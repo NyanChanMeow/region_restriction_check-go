@@ -1,5 +1,6 @@
 {
     "interval": 300,
+    "dns": "1.1.1.1:53",
     "log": {
         "level": "debug",
         "filename": "/var/log/region_restriction_check/log.log",
@@ -9,7 +10,7 @@
     },
     "tasks": {
         "Test": {
-            "dns": "8.8.8.8:53",
+            "dns": "1.1.1.1:53",
             "medias": {
                 "PCRJP": {
                     "interval": 300

@@ -5,10 +5,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func CheckPCRJP(m *Media) *CheckResult {
+func CheckKancolle(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://api-priconne-redive.cygames.jp/"
+		m.URL = "http://203.104.209.7/kcscontents/"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Dalvik
@@ -25,23 +25,18 @@ func CheckPCRJP(m *Media) *CheckResult {
 	defer fasthttp.ReleaseResponse(resp)
 
 	switch resp.StatusCode() {
-	case fasthttp.StatusNotFound:
+	case fasthttp.StatusOK:
 		result.Result = CheckResultYes
 	case fasthttp.StatusForbidden:
 		result.Result = CheckResultNo
 	default:
 		result.Result = CheckResultUnexpected
 	}
+
 	m.Logger.WithFields(log.Fields{
 		"status_code": resp.StatusCode(),
 		"result":      result.Result,
+		"error":       result.Error,
 	}).Infoln("done")
 	return result
-}
-
-func CheckUMAJP(m *Media) *CheckResult {
-	if m.URL == "" {
-		m.URL = "https://api-umamusume.cygames.jp/"
-	}
-	return CheckPCRJP(m)
 }

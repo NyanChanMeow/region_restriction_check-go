@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
+	"sort"
 	"time"
 
 	"github.com/NyanChanMeow/region_restriction_check-go/pkg/medias"
@@ -15,7 +16,7 @@ import (
 )
 
 const (
-	version     = "0.0.1"
+	version     = "0.0.2"
 	modeChecker = "checker"
 	modeMonitor = "monitor"
 )
@@ -24,6 +25,7 @@ var (
 	flags struct {
 		ConfigFile string `json:"-"`
 		Version    bool   `json:"-"`
+		DNS        string `json:"dns"`
 		// Checker
 		Mode    string      `json:"-"`
 		Regions regionArray `json:"-"`
@@ -39,7 +41,9 @@ func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	flag.StringVar(&flags.ConfigFile, "config.file", "config.json", "only working with monitor mode")
+	flag.StringVar(&flags.DNS, "dns", "1.1.1.1:53", "default dns server")
 	flag.StringVar(&flags.Mode, "mode", modeChecker, "[checker, monitor]")
+	flag.StringVar(&flags.Log.Level, "log.level", "info", "log level")
 	flag.Var(&flags.Regions, "region", "available regions: [all, JP]")
 	flag.BoolVar(&flags.Version, "version", false, "display version and exit")
 	flag.Parse()
@@ -51,7 +55,7 @@ func main() {
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors:   true,
 		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02T15:04:05.000000000Z07:00",
+		TimestampFormat: "2006-01-02 15:04:05 07:00",
 	})
 	log.SetOutput(os.Stdout)
 
@@ -71,6 +75,7 @@ func main() {
 }
 
 func runChecker() {
+	log.SetLevel(flags.Log.ParseLevel())
 	flags.Regions.CheckAll()
 	result := make(chan *medias.CheckResult)
 
@@ -92,6 +97,7 @@ func runChecker() {
 						"media":  mn,
 					})
 					mc.Timeout = 10
+					mc.DNS = flags.DNS
 					result <- f(mc)
 				}(mediaName, region, mediaFunc)
 			}
@@ -100,10 +106,12 @@ func runChecker() {
 		}
 	}
 
+	var r medias.CheckResultSlice
 	for ; cnt > 0; cnt-- {
-		res := <-result
-		fmt.Printf("%+v\n", res)
+		r = append(r, <-result)
 	}
+	sort.Sort(&r)
+	r.PrintTo(os.Stdout)
 }
 
 func runMonitor() {

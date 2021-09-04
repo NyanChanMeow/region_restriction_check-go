@@ -13,7 +13,7 @@ func CheckBahamutAnime(m *Media) *CheckResult {
 		m.URL = "https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=14667"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
-		m.Headers["User-Agent"] = "Dalvik/2.1.0 (Linux; U; Android 9; ALP-AL00 Build/HUAWEIALP-AL00)"
+		m.Headers["User-Agent"] = UA_Browser
 	}
 	result := &CheckResult{Media: m.Name, Region: m.Region}
 

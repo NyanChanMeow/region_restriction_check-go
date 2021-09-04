@@ -8,13 +8,16 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func CheckBahamutAnime(m *Media) *CheckResult {
+func CheckCatchplay(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=14667"
+		m.URL = "https://sunapi.catchplay.com/geo"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
+	}
+	if _, ok := m.Headers["Authorization"]; !ok {
+		m.Headers["Authorization"] = "Basic NTQ3MzM0NDgtYTU3Yi00MjU2LWE4MTEtMzdlYzNkNjJmM2E0Ok90QzR3elJRR2hLQ01sSDc2VEoy"
 	}
 	result := &CheckResult{Media: m.Name, Region: m.Region}
 
@@ -29,16 +32,26 @@ func CheckBahamutAnime(m *Media) *CheckResult {
 
 	result.Result = CheckResultUnexpected
 	if resp.StatusCode() == fasthttp.StatusOK {
+
 		r := make(map[string]interface{})
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
+			m.Logger.Errorln(err)
 			result.Message = err.Error()
-		} else {
-			if _, ok := r["animeSn"]; ok {
+			result.Result = CheckResultFailed
+			return result
+		}
+
+		if rr, ok := r["code"]; ok {
+			if rr.(string) == "0" {
 				result.Result = CheckResultYes
-			} else {
+			} else if rr.(string) == "100016" {
 				result.Result = CheckResultNo
+			} else {
+				result.Message = fmt.Sprintf("code: %+v", rr)
 			}
+		} else {
+			result.Message = fmt.Sprintf("code not found")
 		}
 	} else {
 		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())

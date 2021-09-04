@@ -23,13 +23,16 @@ const (
 	CheckResultOverseaOnly = "oversea_only"
 
 	printPadding = 48
+
+	ContentTypeJSON = "application/json"
 )
 
 type CheckResult struct {
-	Result string
-	Media  string
-	Region string
-	Error  error
+	Result  string
+	Media   string
+	Region  string
+	Type    string
+	Message string
 }
 
 type CheckResultSlice []*CheckResult
@@ -46,7 +49,11 @@ func (c *CheckResultSlice) Less(i, j int) bool {
 	if (*c)[i].Region < (*c)[j].Region {
 		return true
 	} else if (*c)[i].Region == (*c)[j].Region {
-		return (*c)[i].Media < (*c)[j].Media
+		if (*c)[i].Media < (*c)[j].Media {
+			return true
+		} else if (*c)[i].Media == (*c)[j].Media {
+			return (*c)[i].Type < (*c)[j].Type
+		}
 	}
 	return false
 }
@@ -54,11 +61,19 @@ func (c *CheckResultSlice) Less(i, j int) bool {
 func (c *CheckResultSlice) PrintTo(writer io.Writer) {
 	w := tabwriter.NewWriter(writer, 8, 8, 0, ' ', 0)
 	lastRegion := ""
+	lastOttType := ""
 	for _, res := range *c {
 		if lastRegion != res.Region {
 			w.Flush()
 			fmt.Fprintf(writer, "\n==========[ %s ]==========\n", res.Region)
 			lastRegion = res.Region
+		}
+		if lastOttType != res.Type {
+			lastOttType = res.Type
+			if lastOttType != "" {
+				w.Flush()
+				fmt.Fprintf(writer, "\n------< %s - %s >------\n", res.Region, res.Type)
+			}
 		}
 
 		s := HumanReadableNames[res.Media]
@@ -69,8 +84,8 @@ func (c *CheckResultSlice) PrintTo(writer io.Writer) {
 		s += "\t"
 		s += strings.ToUpper(res.Result)
 
-		if res.Error != nil {
-			s += fmt.Sprintf(" (%s)", res.Error)
+		if res.Message != "" {
+			s += fmt.Sprintf(" (%s)", res.Message)
 		}
 		fmt.Fprintln(w, s)
 	}

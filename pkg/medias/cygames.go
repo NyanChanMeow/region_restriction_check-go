@@ -1,6 +1,8 @@
 package medias
 
 import (
+	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
@@ -13,12 +15,12 @@ func CheckPCRJP(m *Media) *CheckResult {
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Dalvik
 	}
-	result := &CheckResult{Media: m.Name, Region: m.Region}
+	result := &CheckResult{Media: m.Name, Region: m.Region, Type: "Game"}
 
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Error = err
+		result.Message = err.Error()
 		result.Result = CheckResultFailed
 		return result
 	}
@@ -31,10 +33,12 @@ func CheckPCRJP(m *Media) *CheckResult {
 		result.Result = CheckResultNo
 	default:
 		result.Result = CheckResultUnexpected
+		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
 	}
 	m.Logger.WithFields(log.Fields{
 		"status_code": resp.StatusCode(),
 		"result":      result.Result,
+		"message":     result.Message,
 	}).Infoln("done")
 	return result
 }

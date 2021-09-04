@@ -2,19 +2,19 @@ package medias
 
 import (
 	"encoding/json"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
 
-// {"isoCountryCode":"JP","timeZone":"Asia/Tokyo","utcOffset":"+09:00","cdnRegionUrl":"https://ds-linear-abematv.akamaized.net/region"}
-func CheckAbemaTV(m *Media) *CheckResult {
+func CheckLineTV(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://api.abema.io/v1/ip/check?device=android"
+		m.URL = "https://www.linetv.tw/api/part/11829/eps/1/part?chocomemberId="
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
-		m.Headers["User-Agent"] = UA_Dalvik
+		m.Headers["User-Agent"] = UA_Browser
 	}
 	result := &CheckResult{Media: m.Name, Region: m.Region}
 
@@ -27,22 +27,30 @@ func CheckAbemaTV(m *Media) *CheckResult {
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	result.Result = CheckResultNo
-	if resp.StatusCode() != fasthttp.StatusForbidden {
-		r := make(map[string]string)
+	result.Result = CheckResultUnexpected
+	if resp.StatusCode() == fasthttp.StatusOK {
+		r := make(map[string]interface{})
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
 			result.Message = err.Error()
-			result.Result = CheckResultUnexpected
 		} else {
-			if reg, ok := r["isoCountryCode"]; ok {
-				if reg == "JP" {
+			if c, ok := r["countryCode"]; ok {
+				cc := fmt.Sprintf("%v", c)
+				if cc == "228" {
 					result.Result = CheckResultYes
+				} else if cc == "114" {
+					result.Result = CheckResultNo
 				} else {
-					result.Result = CheckResultOverseaOnly
+					result.Message = fmt.Sprintf("country code: %s", cc)
 				}
+			} else {
+				result.Message = "country code not found"
 			}
 		}
+	} else if resp.StatusCode() == fasthttp.StatusForbidden {
+		result.Result = CheckResultNo
+	} else {
+		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

@@ -4,6 +4,9 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/NyanChanMeow/region_restriction_check-go)](https://goreportcard.com/report/github.com/NyanChanMeow/region_restriction_check-go) ![Build Nightly](https://github.com/NyanChanMeow/region_restriction_check-go/actions/workflows/build-nightly-ci.yml/badge.svg)
 
 ## 支持列表
+### Asia
+- HBOGo Asia
+
 ### JP
 - AbemaTV
 - 公主连接
@@ -13,9 +16,18 @@
 ### TW
 - 巴哈姆特动画疯
 - Bilibili
+- 4GTV
+- Catchplay
+- HamiVideo
+- KKTV
+- LineTV
+- LiTV
 
 ### HK
 - Bilibili
+- MyTVSuper
+- NowE
+- ViuTV
 
 更多内容待添加
 

@@ -8,13 +8,18 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func CheckBahamutAnime(m *Media) *CheckResult {
+func Check4GTV(m *Media) *CheckResult {
+	m.Method = "POST"
+	m.Headers[fasthttp.HeaderContentType] = ContentTypeJSON
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=14667"
+		m.URL = "https://api2.4gtv.tv//Vod/GetVodUrl3"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
+	}
+	if m.Body == "" {
+		m.Body = `value=D33jXJ0JVFkBqV%2BZSi1mhPltbejAbPYbDnyI9hmfqjKaQwRQdj7ZKZRAdb16%2FRUrE8vGXLFfNKBLKJv%2BfDSiD%2BZJlUa5Msps2P4IWuTrUP1%2BCnS255YfRadf%2BKLUhIPj`
 	}
 	result := &CheckResult{Media: m.Name, Region: m.Region}
 
@@ -28,17 +33,27 @@ func CheckBahamutAnime(m *Media) *CheckResult {
 	defer fasthttp.ReleaseResponse(resp)
 
 	result.Result = CheckResultUnexpected
-	if resp.StatusCode() == fasthttp.StatusOK {
+	if resp.StatusCode() == fasthttp.StatusAccepted {
+
 		r := make(map[string]interface{})
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
+			m.Logger.Errorln(err)
 			result.Message = err.Error()
-		} else {
-			if _, ok := r["animeSn"]; ok {
+			result.Result = CheckResultFailed
+			return result
+		}
+
+		if rr, ok := r["Success"]; ok {
+			if rr.(bool) == true {
 				result.Result = CheckResultYes
-			} else {
+			} else if rr.(bool) == false {
 				result.Result = CheckResultNo
+			} else {
+				result.Message = fmt.Sprintf("%+v", rr)
 			}
+		} else {
+			result.Message = fmt.Sprintf("Success not found")
 		}
 	} else {
 		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())

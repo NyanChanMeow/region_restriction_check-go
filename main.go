@@ -55,7 +55,7 @@ func main() {
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors:   true,
 		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02 15:04:05 07:00",
+		TimestampFormat: "2006-01-02 15:04:05 -07:00",
 	})
 	log.SetOutput(os.Stdout)
 
@@ -80,6 +80,7 @@ func runChecker() {
 	result := make(chan *medias.CheckResult)
 
 	cnt := 0
+	checked := make(map[string]int)
 	for _, region := range flags.Regions {
 		if len(region) == 0 {
 			continue
@@ -87,6 +88,10 @@ func runChecker() {
 
 		if mediaFuncsRegion, ok := medias.MediaFuncs[region]; ok {
 			for mediaName, mediaFunc := range mediaFuncsRegion {
+				if _, ok := checked[mediaName]; ok {
+					continue
+				}
+				checked[mediaName] = 0
 				cnt++
 				go func(mn, rg string, f func(*medias.Media) *medias.CheckResult) {
 					mc := medias.NewMediaConf()

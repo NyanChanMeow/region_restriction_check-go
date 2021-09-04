@@ -8,13 +8,18 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func CheckBahamutAnime(m *Media) *CheckResult {
+func CheckNowE(m *Media) *CheckResult {
+	m.Method = "POST"
+	m.Headers[fasthttp.HeaderContentType] = ContentTypeJSON
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=14667"
+		m.URL = "https://webtvapi.nowe.com/16/1/getVodURL"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
+	}
+	if m.Body == "" {
+		m.Body = `{"contentId":"202105121370235","contentType":"Vod","pin":"","deviceId":"W-60b8d30a-9294-d251-617b-c12f9d0c","deviceType":"WEB"}`
 	}
 	result := &CheckResult{Media: m.Name, Region: m.Region}
 
@@ -29,16 +34,27 @@ func CheckBahamutAnime(m *Media) *CheckResult {
 
 	result.Result = CheckResultUnexpected
 	if resp.StatusCode() == fasthttp.StatusOK {
+
 		r := make(map[string]interface{})
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
+			m.Logger.Errorln(err)
 			result.Message = err.Error()
-		} else {
-			if _, ok := r["animeSn"]; ok {
+			result.Result = CheckResultFailed
+			return result
+		}
+
+		if rr, ok := r["responseCode"]; ok {
+			switch rr {
+			case "SUCCESS":
 				result.Result = CheckResultYes
-			} else {
+			case "GEO_CHECK_FAIL":
 				result.Result = CheckResultNo
+			default:
+				result.Message = fmt.Sprintf("result: %s", rr)
 			}
+		} else {
+			result.Message = fmt.Sprintf("responseCode not found")
 		}
 	} else {
 		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())

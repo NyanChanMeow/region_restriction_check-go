@@ -1,21 +1,21 @@
 package medias
 
 import (
-	"fmt"
+	"bytes"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
 
-func CheckKancolle(m *Media) *CheckResult {
+func CheckMyTVSuper(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "http://203.104.209.7/kcscontents/"
+		m.URL = "https://www.mytvsuper.com/iptest.php"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
-		m.Headers["User-Agent"] = UA_Dalvik
+		m.Headers["User-Agent"] = UA_Browser
 	}
-	result := &CheckResult{Media: m.Name, Region: m.Region, Type: "Game"}
+	result := &CheckResult{Media: m.Name, Region: m.Region}
 
 	resp, err := m.Do()
 	if err != nil {
@@ -26,14 +26,10 @@ func CheckKancolle(m *Media) *CheckResult {
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	switch resp.StatusCode() {
-	case fasthttp.StatusOK:
+	if bytes.Contains([]byte("HK"), resp.Body()) {
 		result.Result = CheckResultYes
-	case fasthttp.StatusForbidden:
+	} else {
 		result.Result = CheckResultNo
-	default:
-		result.Result = CheckResultUnexpected
-		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

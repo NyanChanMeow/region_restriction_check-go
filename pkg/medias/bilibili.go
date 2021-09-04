@@ -48,7 +48,7 @@ func checkBilibili(m *Media, result *CheckResult) {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Error = err
+		result.Message = err.Error()
 		result.Result = CheckResultFailed
 		return
 	}
@@ -61,11 +61,12 @@ func checkBilibili(m *Media, result *CheckResult) {
 		result.Result = CheckResultNo
 	default:
 		result.Result = CheckResultUnexpected
+		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{
 		"status_code": resp.StatusCode(),
 		"result":      result.Result,
-		"error":       result.Error,
+		"message":     result.Message,
 	}).Infoln("done")
 }

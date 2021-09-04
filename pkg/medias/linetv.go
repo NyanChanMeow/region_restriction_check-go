@@ -21,36 +21,34 @@ func CheckLineTV(m *Media) *CheckResult {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err)
 		return result
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	result.Result = CheckResultUnexpected
 	if resp.StatusCode() == fasthttp.StatusOK {
 		r := make(map[string]interface{})
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
-			result.Message = err.Error()
+			result.Failed(err)
 		} else {
 			if c, ok := r["countryCode"]; ok {
 				cc := fmt.Sprintf("%v", c)
 				if cc == "228" {
-					result.Result = CheckResultYes
+					result.Yes()
 				} else if cc == "114" {
-					result.Result = CheckResultNo
+					result.No()
 				} else {
-					result.Message = fmt.Sprintf("country code: %s", cc)
+					result.Unexpected(fmt.Sprintf("country code: %s", cc))
 				}
 			} else {
-				result.Message = "country code not found"
+				result.Unexpected(`key "countryCode" not found`)
 			}
 		}
 	} else if resp.StatusCode() == fasthttp.StatusForbidden {
-		result.Result = CheckResultNo
+		result.No()
 	} else {
-		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

@@ -2,7 +2,6 @@ package medias
 
 import (
 	"encoding/json"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -21,13 +20,11 @@ func CheckKKTV(m *Media) *CheckResult {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err)
 		return result
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	result.Result = CheckResultUnexpected
 	if resp.StatusCode() == fasthttp.StatusOK {
 		var r struct {
 			Data struct {
@@ -36,17 +33,16 @@ func CheckKKTV(m *Media) *CheckResult {
 		}
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
-			result.Message = err.Error()
-			result.Result = CheckResultUnexpected
+			result.Failed(err)
 		} else {
 			if r.Data.Country == "TW" {
-				result.Result = CheckResultYes
+				result.Yes()
 			} else {
-				result.Result = CheckResultNo
+				result.No()
 			}
 		}
 	} else {
-		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

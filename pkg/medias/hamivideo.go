@@ -21,34 +21,33 @@ func CheckHamiVideo(m *Media) *CheckResult {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err)
 		return result
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	result.Result = CheckResultUnexpected
 	if resp.StatusCode() == fasthttp.StatusOK {
 		r := make(map[string]string)
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
-			result.Message = err.Error()
+			result.Failed(err)
 		} else {
 			if c, ok := r["code"]; ok {
 				if c == "06001-107" {
-					result.Result = CheckResultYes
+					result.Yes()
 				} else if c == "06001-106" {
-					result.Result = CheckResultNo
+					result.No()
 				} else {
-					result.Message = fmt.Sprintf("code: %s", c)
+					result.Unexpected(fmt.Sprintf("code: %s", c))
 				}
 			} else {
-				result.Message = "code not found"
+				result.Unexpected(`key "code" not found`)
 			}
 		}
 	} else {
-		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
+
 	m.Logger.WithFields(log.Fields{
 		"status_code": resp.StatusCode(),
 		"result":      result.Result,

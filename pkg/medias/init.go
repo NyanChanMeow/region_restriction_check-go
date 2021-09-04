@@ -32,7 +32,7 @@ var (
 		"LineTV":       CheckLineTV,
 		"HamiVideo":    CheckHamiVideo,
 		"Catchplay":    CheckCatchplay,
-		//"ElevenSports": CheckElevenSports,
+		"ElevenSports": CheckElevenSports,
 	}
 
 	MediaFuncs = map[string]map[string]func(*Media) *CheckResult{
@@ -62,5 +62,6 @@ var (
 		"LineTV":       "LineTV",
 		"HamiVideo":    "HamiVideo",
 		"Catchplay":    "Catchplay",
+		"ElevenSports": "Eleven Sports",
 	}
 )

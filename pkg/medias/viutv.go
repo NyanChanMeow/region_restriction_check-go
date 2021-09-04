@@ -26,38 +26,35 @@ func CheckViuTV(m *Media) *CheckResult {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err)
 		return result
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	result.Result = CheckResultUnexpected
 	if resp.StatusCode() == fasthttp.StatusOK {
 
 		r := make(map[string]interface{})
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
 			m.Logger.Errorln(err)
-			result.Message = err.Error()
-			result.Result = CheckResultFailed
+			result.Failed(err)
 			return result
 		}
 
 		if rr, ok := r["responseCode"]; ok {
 			switch rr {
 			case "SUCCESS", "PRODUCT_INFORMATION_INCOMPLETE":
-				result.Result = CheckResultYes
+				result.Yes()
 			case "GEO_CHECK_FAIL":
-				result.Result = CheckResultNo
+				result.No()
 			default:
-				result.Message = fmt.Sprintf("result: %s", rr)
+				result.Unexpected(fmt.Sprintf("result: %s", rr))
 			}
 		} else {
-			result.Message = fmt.Sprintf("responseCode not found")
+			result.Unexpected(`key "responseCode" not found`)
 		}
 	} else {
-		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

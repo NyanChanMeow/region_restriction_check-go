@@ -26,37 +26,34 @@ func Check4GTV(m *Media) *CheckResult {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err.Error())
 		return result
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	result.Result = CheckResultUnexpected
 	if resp.StatusCode() == fasthttp.StatusAccepted {
 
 		r := make(map[string]interface{})
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
 			m.Logger.Errorln(err)
-			result.Message = err.Error()
-			result.Result = CheckResultFailed
+			result.Failed(err)
 			return result
 		}
 
 		if rr, ok := r["Success"]; ok {
 			if rr.(bool) == true {
-				result.Result = CheckResultYes
+				result.Yes()
 			} else if rr.(bool) == false {
-				result.Result = CheckResultNo
+				result.No()
 			} else {
-				result.Message = fmt.Sprintf("%+v", rr)
+				result.Unexpected(fmt.Sprintf("%+v", rr))
 			}
 		} else {
-			result.Message = fmt.Sprintf("Success not found")
+			result.Failed(`key "Success" not found`)
 		}
 	} else {
-		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

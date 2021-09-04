@@ -35,6 +35,33 @@ type CheckResult struct {
 	Message string
 }
 
+func (c *CheckResult) Yes() {
+	c.Result = CheckResultYes
+}
+
+func (c *CheckResult) No() {
+	c.Result = CheckResultNo
+}
+
+func (c *CheckResult) Oversea() {
+	c.Result = CheckResultOverseaOnly
+}
+
+func (c *CheckResult) Unexpected(msg interface{}) {
+	c.Result = CheckResultUnexpected
+	c.Message = fmt.Sprint(msg)
+}
+
+func (c *CheckResult) UnexpectedStatusCode(code interface{}) {
+	c.Result = CheckResultUnexpected
+	c.Message = fmt.Sprintf("status code: %s", fmt.Sprint(code))
+}
+
+func (c *CheckResult) Failed(msg interface{}) {
+	c.Result = CheckResultFailed
+	c.Message = fmt.Sprint(msg)
+}
+
 type CheckResultSlice []*CheckResult
 
 func (c *CheckResultSlice) Len() int {

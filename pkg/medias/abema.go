@@ -21,25 +21,23 @@ func CheckAbemaTV(m *Media) *CheckResult {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err)
 		return result
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	result.Result = CheckResultNo
+	result.No()
 	if resp.StatusCode() != fasthttp.StatusForbidden {
 		r := make(map[string]string)
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
-			result.Message = err.Error()
-			result.Result = CheckResultUnexpected
+			result.Unexpected(err)
 		} else {
 			if reg, ok := r["isoCountryCode"]; ok {
 				if reg == "JP" {
-					result.Result = CheckResultYes
+					result.Yes()
 				} else {
-					result.Result = CheckResultOverseaOnly
+					result.No()
 				}
 			}
 		}

@@ -1,8 +1,6 @@
 package medias
 
 import (
-	"fmt"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
@@ -20,20 +18,18 @@ func CheckPCRJP(m *Media) *CheckResult {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err)
 		return result
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
 	switch resp.StatusCode() {
 	case fasthttp.StatusNotFound:
-		result.Result = CheckResultYes
+		result.Yes()
 	case fasthttp.StatusForbidden:
-		result.Result = CheckResultNo
+		result.No()
 	default:
-		result.Result = CheckResultUnexpected
-		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 	m.Logger.WithFields(log.Fields{
 		"status_code": resp.StatusCode(),

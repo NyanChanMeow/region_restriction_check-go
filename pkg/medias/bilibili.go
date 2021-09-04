@@ -48,20 +48,18 @@ func checkBilibili(m *Media, result *CheckResult) {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err)
 		return
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
 	switch resp.StatusCode() {
 	case fasthttp.StatusOK:
-		result.Result = CheckResultYes
+		result.Yes()
 	case fasthttp.StatusForbidden:
-		result.Result = CheckResultNo
+		result.No()
 	default:
-		result.Result = CheckResultUnexpected
-		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

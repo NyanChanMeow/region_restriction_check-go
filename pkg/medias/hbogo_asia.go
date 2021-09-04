@@ -2,7 +2,6 @@ package medias
 
 import (
 	"encoding/json"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -21,28 +20,26 @@ func CheckHBOGoAsia(m *Media) *CheckResult {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err)
 		return result
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	result.Result = CheckResultUnexpected
 	if resp.StatusCode() == fasthttp.StatusOK {
 		r := make(map[string]interface{})
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
-			result.Message = err.Error()
+			result.Failed(err)
 		} else {
 			if c, ok := r["country"]; ok {
-				result.Result = CheckResultYes
+				result.Yes()
 				result.Message = "Region: " + c.(string)
 			} else {
-				result.Result = CheckResultNo
+				result.No()
 			}
 		}
 	} else {
-		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

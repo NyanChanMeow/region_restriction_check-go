@@ -20,16 +20,15 @@ func CheckMyTVSuper(m *Media) *CheckResult {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err)
 		return result
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
 	if bytes.Contains([]byte("HK"), resp.Body()) {
-		result.Result = CheckResultYes
+		result.Yes()
 	} else {
-		result.Result = CheckResultNo
+		result.No()
 	}
 
 	m.Logger.WithFields(log.Fields{

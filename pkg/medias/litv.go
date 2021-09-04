@@ -26,37 +26,34 @@ func CheckLiTV(m *Media) *CheckResult {
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Message = err.Error()
-		result.Result = CheckResultFailed
+		result.Failed(err)
 		return result
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	result.Result = CheckResultUnexpected
 	if resp.StatusCode() == fasthttp.StatusOK {
 
 		r := make(map[string]interface{})
 		err = json.Unmarshal(resp.Body(), &r)
 		if err != nil {
 			m.Logger.Errorln(err)
-			result.Message = err.Error()
-			result.Result = CheckResultFailed
+			result.Failed(err)
 			return result
 		}
 
 		if rr, ok := r["errorMessage"]; ok {
 			if rr == nil {
-				result.Result = CheckResultYes
+				result.Yes()
 			} else if rr.(string) == "vod.error.outsideregionerror" {
-				result.Result = CheckResultNo
+				result.No()
 			} else {
-				result.Message = fmt.Sprintf("%+v", rr)
+				result.Unexpected(fmt.Sprintf("%+v", rr))
 			}
 		} else {
-			result.Message = fmt.Sprintf("errorMessage not found")
+			result.Unexpected(`key "errorMessage" not found`)
 		}
 	} else {
-		result.Message = fmt.Sprintf("status code: %d", resp.StatusCode())
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

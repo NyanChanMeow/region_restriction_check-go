@@ -3,43 +3,35 @@ package medias
 import (
 	"bytes"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
 
-func CheckFOD(m *Media) *CheckResult {
+func CheckFOD(m *Media) (result *CheckResult) {
+	m.URL = "https://geocontrol1.stream.ne.jp/fod-geo/check.xml?time=1624504256"
 	m.Logger.Infoln("running")
-	if m.URL == "" {
-		m.URL = "https://geocontrol1.stream.ne.jp/fod-geo/check.xml?time=1624504256"
-	}
+
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
 	}
-	result := &CheckResult{Media: m.Name, Region: m.Region}
+	result = &CheckResult{Media: m.Name, Region: m.Region}
 
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
 		result.Failed(err)
-		return result
+		return
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	switch resp.StatusCode() {
-	case fasthttp.StatusOK:
-		if bytes.Contains(resp.Body(), []byte("true")) {
-			result.Yes()
-		} else {
-			result.No()
-		}
-	default:
+	if resp.StatusCode() != fasthttp.StatusOK {
 		result.UnexpectedStatusCode(resp.StatusCode())
+		return
 	}
 
-	m.Logger.WithFields(log.Fields{
-		"status_code": resp.StatusCode(),
-		"result":      result.Result,
-		"message":     result.Message,
-	}).Infoln("done")
-	return result
+	if bytes.Contains(resp.Body(), []byte("true")) {
+		result.Yes()
+	} else {
+		result.No()
+	}
+	return
 }

@@ -6,6 +6,23 @@ const (
 )
 
 var (
+	mediasGlobal = map[string]func(*Media) *CheckResult{
+		"Dazn":    CheckDazn,
+		"Netflix": CheckNetflix,
+		// "NetflixCDN": CheckNetflixCDN,
+		/*
+			"DisneyPlus": CheckDisneyPlus,
+			"HotStar":    CheckHotStar,
+			"YouTubePremium": CheckYouTubePremium,
+			"YouTubeCDN": CheckYouTubeCDN,
+			"PrimeVideo": PrimeVideo,
+			"TVBAnywhere": CheckTVBAnywhere,
+			"Tiktok": CheckTiktok,
+			"iQYI": CheckiQYI,
+			"Viu.com": CheckViuCom,
+		*/
+	}
+
 	mediasJP = map[string]func(*Media) *CheckResult{
 		"PCRJP":        CheckPCRJP,
 		"UMAJP":        CheckUMAJP,
@@ -48,12 +65,17 @@ var (
 	}
 
 	MediaFuncs = map[string]map[string]func(*Media) *CheckResult{
-		"JP": mediasJP,
-		"TW": mediasTW,
-		"HK": mediasHK,
+		"Global": mediasGlobal,
+		"JP":     mediasJP,
+		"TW":     mediasTW,
+		"HK":     mediasHK,
 	}
 
 	HumanReadableNames = map[string]string{
+		// Global
+		"Dazn":       "Dazn",
+		"Netflix":    "Netflix",
+		"NetflixCDN": "Netflix Preferred CDN",
 		// JP
 		"PCRJP":        "Princess Connect Re:Dive Japan",
 		"UMAJP":        "Pretty Derby Japan",

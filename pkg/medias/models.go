@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -16,11 +17,12 @@ import (
 )
 
 const (
-	CheckResultYes         = "yes"
-	CheckResultNo          = "no"
-	CheckResultUnexpected  = "unexpected"
-	CheckResultFailed      = "failed"
-	CheckResultOverseaOnly = "oversea_only"
+	CheckResultYes           = "yes"
+	CheckResultNo            = "no"
+	CheckResultUnexpected    = "unexpected"
+	CheckResultFailed        = "failed"
+	CheckResultOverseaOnly   = "oversea_only"
+	CheckResultOriginalsOnly = "originals_only"
 
 	printPadding = 48
 
@@ -35,8 +37,11 @@ type CheckResult struct {
 	Message string
 }
 
-func (c *CheckResult) Yes() {
+func (c *CheckResult) Yes(intr ...interface{}) {
 	c.Result = CheckResultYes
+	if len(intr) > 0 {
+		c.Message = fmt.Sprint(intr...)
+	}
 }
 
 func (c *CheckResult) No() {
@@ -45,6 +50,10 @@ func (c *CheckResult) No() {
 
 func (c *CheckResult) Oversea() {
 	c.Result = CheckResultOverseaOnly
+}
+
+func (c *CheckResult) OriginalsOnly() {
+	c.Result = CheckResultOriginalsOnly
 }
 
 func (c *CheckResult) Unexpected(msg interface{}) {
@@ -121,7 +130,7 @@ func (c *CheckResultSlice) PrintTo(writer io.Writer) {
 
 type Media struct {
 	Enabled  bool              `json:"enabled"`
-	URL      string            `json:"url"`
+	URL      string            `json:"-"`
 	Method   string            `json:"method"`
 	Headers  map[string]string `json:"headers"`
 	Body     string            `json:"body"`
@@ -153,8 +162,6 @@ func (m *Media) UnmarshalJSON(data []byte) error {
 		switch k {
 		case "enabled":
 			err = json.Unmarshal(v, &m.Enabled)
-		case "url":
-			err = json.Unmarshal(v, &m.URL)
 		case "method":
 			err = json.Unmarshal(v, &m.Method)
 		case "body":
@@ -220,5 +227,29 @@ func (m *Media) Do() (*fasthttp.Response, error) {
 		fasthttp.ReleaseResponse(resp)
 		return nil, err
 	}
+	m.Logger = m.Logger.WithField("status_code", resp.StatusCode())
 	return resp, nil
+}
+
+func (m *Media) DoRedirects() (*fasthttp.Response, error) {
+	cnt := 0
+	for {
+		resp, err := m.Do()
+		if err != nil {
+			return nil, err
+		}
+		status := resp.StatusCode()
+
+		if status == fasthttp.StatusFound || status == fasthttp.StatusMovedPermanently {
+			cnt += 1
+			if cnt > 50 {
+				return nil, errors.New("too many redirects")
+			}
+			m.URL = string(resp.Header.Peek("location"))
+			fasthttp.ReleaseResponse(resp)
+			continue
+		} else {
+			return resp, nil
+		}
+	}
 }

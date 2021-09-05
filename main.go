@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	version     = "0.0.2"
+	version     = "0.0.3"
 	modeChecker = "checker"
 	modeMonitor = "monitor"
 )
@@ -103,7 +103,12 @@ func runChecker() {
 					})
 					mc.Timeout = 10
 					mc.DNS = flags.DNS
-					result <- f(mc)
+					r := f(mc)
+					mc.Logger.WithFields(log.Fields{
+						"result":  r.Result,
+						"message": r.Message,
+					}).Infoln("done")
+					result <- r
 				}(mediaName, region, mediaFunc)
 			}
 		} else {

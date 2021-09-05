@@ -2,13 +2,13 @@ package medias
 
 import (
 	"encoding/json"
-	"fmt"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 )
 
-func CheckNowE(m *Media) (result *CheckResult) {
-	m.URL = "https://webtvapi.nowe.com/16/1/getVodURL"
+func CheckDazn(m *Media) (result *CheckResult) {
+	m.URL = "https://startup.core.indazn.com/misl/v5/Startup"
 	m.Method = "POST"
 	m.Headers[fasthttp.HeaderContentType] = ContentTypeJSON
 	m.Logger.Infoln("running")
@@ -16,15 +16,18 @@ func CheckNowE(m *Media) (result *CheckResult) {
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
 	}
+	if _, ok := m.Headers[fasthttp.HeaderContentType]; !ok {
+		m.Headers[fasthttp.HeaderContentType] = ContentTypeJSON
+	}
 	if m.Body == "" {
-		m.Body = `{"contentId":"202105121370235","contentType":"Vod","pin":"","deviceId":"W-60b8d30a-9294-d251-617b-c12f9d0c","deviceType":"WEB"}`
+		m.Body = `{"LandingPageKey":"generic","Languages":"zh-CN,zh,en","Platform":"web","PlatformAttributes":{},"Manufacturer":"","PromoCode":"","Version":"2"}`
 	}
 	result = &CheckResult{Media: m.Name, Region: m.Region}
 
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
-		result.Failed(err)
+		result.Failed(err.Error())
 		return
 	}
 	defer fasthttp.ReleaseResponse(resp)
@@ -34,7 +37,12 @@ func CheckNowE(m *Media) (result *CheckResult) {
 		return
 	}
 
-	r := make(map[string]interface{})
+	var r struct {
+		Region struct {
+			IsAllowed bool   `json:"isAllowed"`
+			Country   string `json:"GeolocatedCountry"`
+		} `json:"Region"`
+	}
 	err = json.Unmarshal(resp.Body(), &r)
 	if err != nil {
 		m.Logger.Errorln(err)
@@ -42,17 +50,10 @@ func CheckNowE(m *Media) (result *CheckResult) {
 		return
 	}
 
-	if rr, ok := r["responseCode"]; ok {
-		switch rr {
-		case "SUCCESS":
-			result.Yes()
-		case "GEO_CHECK_FAIL":
-			result.No()
-		default:
-			result.Unexpected(fmt.Sprintf("result: %s", rr))
-		}
+	if r.Region.IsAllowed {
+		result.Yes("Region:", strings.ToUpper(r.Region.Country))
 	} else {
-		result.Unexpected(`key "responseCode" not found`)
+		result.No()
 	}
 
 	return

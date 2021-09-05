@@ -1,11 +1,10 @@
 package medias
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
 
-func CheckPCRJP(m *Media) *CheckResult {
+func CheckPCRJP(m *Media) (result *CheckResult) {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
 		m.URL = "https://api-priconne-redive.cygames.jp/"
@@ -13,13 +12,13 @@ func CheckPCRJP(m *Media) *CheckResult {
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Dalvik
 	}
-	result := &CheckResult{Media: m.Name, Region: m.Region, Type: "Game"}
+	result = &CheckResult{Media: m.Name, Region: m.Region, Type: "Game"}
 
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
 		result.Failed(err)
-		return result
+		return
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
@@ -31,17 +30,11 @@ func CheckPCRJP(m *Media) *CheckResult {
 	default:
 		result.UnexpectedStatusCode(resp.StatusCode())
 	}
-	m.Logger.WithFields(log.Fields{
-		"status_code": resp.StatusCode(),
-		"result":      result.Result,
-		"message":     result.Message,
-	}).Infoln("done")
-	return result
+
+	return
 }
 
 func CheckUMAJP(m *Media) *CheckResult {
-	if m.URL == "" {
-		m.URL = "https://api-umamusume.cygames.jp/"
-	}
+	m.URL = "https://api-umamusume.cygames.jp/"
 	return CheckPCRJP(m)
 }

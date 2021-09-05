@@ -4,63 +4,55 @@ import (
 	"encoding/json"
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
 
-func CheckViuTV(m *Media) *CheckResult {
+func CheckViuTV(m *Media) (result *CheckResult) {
+	m.URL = "https://api.viu.now.com/p8/3/getLiveURL"
 	m.Method = "POST"
 	m.Headers[fasthttp.HeaderContentType] = ContentTypeJSON
 	m.Logger.Infoln("running")
-	if m.URL == "" {
-		m.URL = "https://api.viu.now.com/p8/3/getLiveURL"
-	}
+
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
 	}
 	if m.Body == "" {
 		m.Body = `{"callerReferenceNo":"20210726112323","contentId":"099","contentType":"Channel","channelno":"099","mode":"prod","deviceId":"29b3cb117a635d5b56","deviceType":"ANDROID_WEB"}`
 	}
-	result := &CheckResult{Media: m.Name, Region: m.Region}
+	result = &CheckResult{Media: m.Name, Region: m.Region}
 
 	resp, err := m.Do()
 	if err != nil {
 		m.Logger.Errorln(err)
 		result.Failed(err)
-		return result
+		return
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	if resp.StatusCode() == fasthttp.StatusOK {
-
-		r := make(map[string]interface{})
-		err = json.Unmarshal(resp.Body(), &r)
-		if err != nil {
-			m.Logger.Errorln(err)
-			result.Failed(err)
-			return result
-		}
-
-		if rr, ok := r["responseCode"]; ok {
-			switch rr {
-			case "SUCCESS", "PRODUCT_INFORMATION_INCOMPLETE":
-				result.Yes()
-			case "GEO_CHECK_FAIL":
-				result.No()
-			default:
-				result.Unexpected(fmt.Sprintf("result: %s", rr))
-			}
-		} else {
-			result.Unexpected(`key "responseCode" not found`)
-		}
-	} else {
+	if resp.StatusCode() != fasthttp.StatusOK {
 		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
-	m.Logger.WithFields(log.Fields{
-		"status_code": resp.StatusCode(),
-		"result":      result.Result,
-		"message":     result.Message,
-	}).Infoln("done")
-	return result
+	r := make(map[string]interface{})
+	err = json.Unmarshal(resp.Body(), &r)
+	if err != nil {
+		m.Logger.Errorln(err)
+		result.Failed(err)
+		return
+	}
+
+	if rr, ok := r["responseCode"]; ok {
+		switch rr {
+		case "SUCCESS", "PRODUCT_INFORMATION_INCOMPLETE":
+			result.Yes()
+		case "GEO_CHECK_FAIL":
+			result.No()
+		default:
+			result.Unexpected(fmt.Sprintf("result: %s", rr))
+		}
+	} else {
+		result.Unexpected(`key "responseCode" not found`)
+	}
+
+	return
 }

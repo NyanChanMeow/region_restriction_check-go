@@ -7,11 +7,23 @@ const (
 
 var (
 	mediasJP = map[string]func(*Media) *CheckResult{
-		"PCRJP":     CheckPCRJP,
-		"UMAJP":     CheckUMAJP,
-		"AbemaTV":   CheckAbemaTV,
-		"Kancolle":  CheckKancolle,
-		"HBOGoAsia": CheckHBOGoAsia,
+		"PCRJP":        CheckPCRJP,
+		"UMAJP":        CheckUMAJP,
+		"Kancolle":     CheckKancolle,
+		"KonosubaFD":   CheckKonosubaFD,
+		"ProjectSekai": CheckProjectSekai,
+		"AbemaTV":      CheckAbemaTV,
+		"HBOGoAsia":    CheckHBOGoAsia,
+		"DMM":          CheckDMM,
+		"Niconico":     CheckNiconico,
+		"Paravi":       CheckParavi,
+		"HuluJP":       CheckHuluJP,
+		"KaraokeDAM":   CheckKaraokeDAM,
+		"FOD":          CheckFOD,
+		"Radiko":       CheckRadiko,
+		/*"Unext":        CheckUnext,
+		"TVer":   CheckTVer,
+		"WOWOW":  CheckWOWOW,*/
 	}
 
 	mediasHK = map[string]func(*Media) *CheckResult{
@@ -43,10 +55,19 @@ var (
 
 	HumanReadableNames = map[string]string{
 		// JP
-		"PCRJP":    "Princess Connect Re:Dive Japan",
-		"UMAJP":    "Pretty Derby Japan",
-		"AbemaTV":  "Abema.TV",
-		"Kancolle": "Kancolle Japan",
+		"PCRJP":        "Princess Connect Re:Dive Japan",
+		"UMAJP":        "Pretty Derby Japan",
+		"KonosubaFD":   "Konosuba Fantastic Days",
+		"ProjectSekai": "Project Sekai",
+		"Kancolle":     "Kancolle Japan",
+		"AbemaTV":      "Abema.TV",
+		"DMM":          "DMM",
+		"Niconico":     "niconico",
+		"Paravi":       "Paravi",
+		"HuluJP":       "Hulu Japan",
+		"KaraokeDAM":   "Karaoke@DAM",
+		"FOD":          "FOD (Fuji TV)",
+		"Radiko":       "Radiko",
 		// HK
 		"BilibiliHKMCTW": "Bilibili HongKong/Macua/Taiwan",
 		"ViuTV":          "Viu.TV",

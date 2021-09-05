@@ -7,10 +7,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func CheckMyTVSuper(m *Media) *CheckResult {
+func CheckRadiko(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://www.mytvsuper.com/iptest.php"
+		m.URL = "https://radiko.jp/area?_=1625406539531"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
@@ -25,10 +25,17 @@ func CheckMyTVSuper(m *Media) *CheckResult {
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	if bytes.Contains(resp.Body(), []byte("HK")) {
-		result.Yes()
-	} else {
-		result.No()
+	switch resp.StatusCode() {
+	case fasthttp.StatusOK:
+		if bytes.Contains(resp.Body(), []byte("JAPAN")) {
+			result.Yes()
+		} else if bytes.Contains(resp.Body(), []byte(`class="OUT"`)) {
+			result.No()
+		} else {
+			result.Unexpected("body unsupported")
+		}
+	default:
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

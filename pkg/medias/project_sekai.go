@@ -1,21 +1,19 @@
 package medias
 
 import (
-	"bytes"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
 
-func CheckMyTVSuper(m *Media) *CheckResult {
+func CheckProjectSekai(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://www.mytvsuper.com/iptest.php"
+		m.URL = "https://game-version.sekai.colorfulpalette.org/1.8.1/3ed70b6a-8352-4532-b819-108837926ff5"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
-		m.Headers["User-Agent"] = UA_Browser
+		m.Headers["User-Agent"] = "pjsekai/48 CFNetwork/1240.0.4 Darwin/20.6.0"
 	}
-	result := &CheckResult{Media: m.Name, Region: m.Region}
+	result := &CheckResult{Media: m.Name, Region: m.Region, Type: "Game"}
 
 	resp, err := m.Do()
 	if err != nil {
@@ -25,10 +23,13 @@ func CheckMyTVSuper(m *Media) *CheckResult {
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	if bytes.Contains(resp.Body(), []byte("HK")) {
+	switch resp.StatusCode() {
+	case fasthttp.StatusOK:
 		result.Yes()
-	} else {
+	case fasthttp.StatusForbidden:
 		result.No()
+	default:
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

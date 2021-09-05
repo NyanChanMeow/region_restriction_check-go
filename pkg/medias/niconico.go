@@ -7,10 +7,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func CheckMyTVSuper(m *Media) *CheckResult {
+func CheckNiconico(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://www.mytvsuper.com/iptest.php"
+		m.URL = "https://www.nicovideo.jp/watch/so23017073"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
@@ -25,10 +25,14 @@ func CheckMyTVSuper(m *Media) *CheckResult {
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	if bytes.Contains(resp.Body(), []byte("HK")) {
-		result.Yes()
+	if resp.StatusCode() == fasthttp.StatusOK {
+		if bytes.Contains(resp.Body(), []byte("同じ地域")) {
+			result.No()
+		} else {
+			result.Yes()
+		}
 	} else {
-		result.No()
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

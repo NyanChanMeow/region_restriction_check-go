@@ -7,10 +7,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func CheckMyTVSuper(m *Media) *CheckResult {
+func CheckHuluJP(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://www.mytvsuper.com/iptest.php"
+		m.URL = "https://id.hulu.jp"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
@@ -25,10 +25,18 @@ func CheckMyTVSuper(m *Media) *CheckResult {
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	if bytes.Contains(resp.Body(), []byte("HK")) {
-		result.Yes()
-	} else {
-		result.No()
+	switch resp.StatusCode() {
+	case fasthttp.StatusFound:
+		redirUrl := resp.Header.Peek("location")
+		if bytes.Contains(redirUrl, []byte("login")) {
+			result.Yes()
+		} else if bytes.Contains(redirUrl, []byte("restrict")) {
+			result.No()
+		} else {
+			result.Unexpected("location: " + string(redirUrl))
+		}
+	default:
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

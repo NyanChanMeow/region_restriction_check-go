@@ -1,16 +1,14 @@
 package medias
 
 import (
-	"bytes"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
 
-func CheckMyTVSuper(m *Media) *CheckResult {
+func CheckKaraokeDAM(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://www.mytvsuper.com/iptest.php"
+		m.URL = "http://cds1.clubdam.com/vhls-cds1/site/xbox/sample_1.mp4.m3u8"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
@@ -25,10 +23,13 @@ func CheckMyTVSuper(m *Media) *CheckResult {
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	if bytes.Contains(resp.Body(), []byte("HK")) {
+	switch resp.StatusCode() {
+	case fasthttp.StatusOK:
 		result.Yes()
-	} else {
+	case fasthttp.StatusForbidden:
 		result.No()
+	default:
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

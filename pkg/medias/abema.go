@@ -37,7 +37,7 @@ func CheckAbemaTV(m *Media) *CheckResult {
 				if reg == "JP" {
 					result.Yes()
 				} else {
-					result.No()
+					result.Oversea()
 				}
 			}
 		}

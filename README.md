@@ -8,10 +8,20 @@
 - HBOGo Asia
 
 ### JP
-- AbemaTV
 - 公主连接
 - 赛马娘
 - KanColle
+- Konosuba Fantastic Days
+- Project Sekai
+
+- DMM
+- AbemaTV
+- niconico
+- Paravi
+- Hulu Japan
+- Karaoke@DAM
+- Fuji TV
+- Radiko
 
 ### TW
 - 巴哈姆特动画疯
@@ -22,6 +32,7 @@
 - KKTV
 - LineTV
 - LiTV
+- Eleven Sports
 
 ### HK
 - Bilibili

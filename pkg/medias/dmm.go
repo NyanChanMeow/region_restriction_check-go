@@ -1,19 +1,20 @@
 package medias
 
 import (
-	"bytes"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
 
-func CheckMyTVSuper(m *Media) *CheckResult {
+func CheckDMM(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://www.mytvsuper.com/iptest.php"
+		m.URL = "https://api-p.videomarket.jp/v3/api/play/keyauth?playKey=4c9e93baa7ca1fc0b63ccf418275afc2&deviceType=3&bitRate=0&loginFlag=0&connType="
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
+	}
+	if _, ok := m.Headers["X-Authorization"]; !ok {
+		m.Headers["X-Authorization"] = "2bCf81eLJWOnHuqg6nNaPZJWfnuniPTKz9GXv5IS"
 	}
 	result := &CheckResult{Media: m.Name, Region: m.Region}
 
@@ -25,10 +26,13 @@ func CheckMyTVSuper(m *Media) *CheckResult {
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	if bytes.Contains(resp.Body(), []byte("HK")) {
+	switch resp.StatusCode() {
+	case fasthttp.StatusRequestTimeout:
 		result.Yes()
-	} else {
+	case fasthttp.StatusForbidden:
 		result.No()
+	default:
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

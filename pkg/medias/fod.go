@@ -7,10 +7,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func CheckMyTVSuper(m *Media) *CheckResult {
+func CheckFOD(m *Media) *CheckResult {
 	m.Logger.Infoln("running")
 	if m.URL == "" {
-		m.URL = "https://www.mytvsuper.com/iptest.php"
+		m.URL = "https://geocontrol1.stream.ne.jp/fod-geo/check.xml?time=1624504256"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
 		m.Headers["User-Agent"] = UA_Browser
@@ -25,10 +25,15 @@ func CheckMyTVSuper(m *Media) *CheckResult {
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	if bytes.Contains(resp.Body(), []byte("HK")) {
-		result.Yes()
-	} else {
-		result.No()
+	switch resp.StatusCode() {
+	case fasthttp.StatusOK:
+		if bytes.Contains(resp.Body(), []byte("true")) {
+			result.Yes()
+		} else {
+			result.No()
+		}
+	default:
+		result.UnexpectedStatusCode(resp.StatusCode())
 	}
 
 	m.Logger.WithFields(log.Fields{

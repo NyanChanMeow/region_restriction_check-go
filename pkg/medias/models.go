@@ -76,10 +76,10 @@ func (c *CheckResultSlice) Less(i, j int) bool {
 	if (*c)[i].Region < (*c)[j].Region {
 		return true
 	} else if (*c)[i].Region == (*c)[j].Region {
-		if (*c)[i].Media < (*c)[j].Media {
+		if (*c)[i].Type < (*c)[j].Type {
 			return true
-		} else if (*c)[i].Media == (*c)[j].Media {
-			return (*c)[i].Type < (*c)[j].Type
+		} else if (*c)[i].Type == (*c)[j].Type {
+			return (*c)[i].Media < (*c)[j].Media
 		}
 	}
 	return false

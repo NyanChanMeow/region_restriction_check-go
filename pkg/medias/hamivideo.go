@@ -14,7 +14,7 @@ func CheckHamiVideo(m *Media) *CheckResult {
 		m.URL = "https://hamivideo.hinet.net/api/play.do?id=OTT_VOD_0000249064&freeProduct=1"
 	}
 	if _, ok := m.Headers["User-Agent"]; !ok {
-		m.Headers["User-Agent"] = UA_Dalvik
+		m.Headers["User-Agent"] = UA_Browser
 	}
 	result := &CheckResult{Media: m.Name, Region: m.Region}
 

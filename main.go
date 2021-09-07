@@ -3,20 +3,20 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime"
 	"sort"
 	"time"
 
+	"github.com/NyanChanMeow/region_restriction_check-go/pkg/exporter"
 	"github.com/NyanChanMeow/region_restriction_check-go/pkg/medias"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 const (
-	version     = "0.0.3"
+	version     = "0.0.5"
 	modeChecker = "checker"
 	modeMonitor = "monitor"
 )
@@ -31,9 +31,10 @@ var (
 		Regions regionArray `json:"-"`
 
 		// Monitor
-		Interval int             `json:"interval"`
-		Log      Log             `json:"log"`
-		Tasks    map[string]Task `json:"tasks"`
+		Interval       int             `json:"interval"`
+		ExporterListen string          `json:"exporter_listen"`
+		Log            Log             `json:"log"`
+		Tasks          map[string]Task `json:"tasks"`
 	}
 )
 
@@ -146,6 +147,13 @@ func runMonitor() {
 	})
 	log.WithField("version", version).Infoln("Region Restriction Check")
 
+	go func() {
+		if err := exporter.ServeExporter(flags.ExporterListen); err != nil {
+			log.Fatalln(err)
+		}
+		log.WithField("exporter_listen", flags.ExporterListen).Infoln("exporter listening")
+	}()
+
 	result := make(chan *medias.CheckResult)
 
 	for taskName, task := range flags.Tasks {
@@ -168,19 +176,22 @@ func runMonitor() {
 
 			found := false
 			for region, mediaFuncsRegion := range medias.MediaFuncs {
-				mlog = mlog.WithFields(log.Fields{
-					"region": region,
-				})
-
 				if mediaFunc, ok := mediaFuncsRegion[mediaName]; ok {
-					go func(mc *medias.Media, logger *log.Entry) {
+					mlog = mlog.WithFields(log.Fields{
+						"region": region,
+					})
+					mediaConf.Region = region
+
+					go func(tn string, mc *medias.Media, logger *log.Entry) {
 						mc.Logger = logger
 						for {
-							result <- mediaFunc(mc)
+							res := mediaFunc(mc)
+							res.Task = tn
+							result <- res
 							logger.WithField("interval", mc.Interval).Infoln("waiting")
 							time.Sleep(time.Duration(mc.Interval) * time.Second)
 						}
-					}(mediaConf, mlog)
+					}(taskName, mediaConf, mlog)
 					found = true
 					break
 				}
@@ -193,6 +204,6 @@ func runMonitor() {
 
 	for {
 		res := <-result
-		fmt.Printf("%+v\n", res)
+		exporter.HandleStatusUpdate(res)
 	}
 }

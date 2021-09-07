@@ -5,7 +5,9 @@ import (
 )
 
 func CheckKancolle(m *Media) (result *CheckResult) {
-	m.URL = "http://203.104.209.7/kcscontents/"
+	if m.URL == "" {
+		m.URL = "http://203.104.209.7/kcscontents/"
+	}
 	m.Logger.Infoln("running")
 
 	if _, ok := m.Headers["User-Agent"]; !ok {

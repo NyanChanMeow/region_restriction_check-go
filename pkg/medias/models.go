@@ -34,6 +34,7 @@ type CheckResult struct {
 	Media   string
 	Region  string
 	Type    string
+	Task    string
 	Message string
 }
 

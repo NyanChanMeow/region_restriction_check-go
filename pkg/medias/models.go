@@ -173,6 +173,8 @@ func (m *Media) UnmarshalJSON(data []byte) error {
 			err = json.Unmarshal(v, &m.Headers)
 		case "interval":
 			err = json.Unmarshal(v, &m.Interval)
+		case "url":
+			err = json.Unmarshal(v, &m.URL)
 		}
 		if err != nil {
 			return err

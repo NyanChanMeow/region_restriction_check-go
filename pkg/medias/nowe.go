@@ -44,7 +44,7 @@ func CheckNowE(m *Media) (result *CheckResult) {
 
 	if rr, ok := r["responseCode"]; ok {
 		switch rr {
-		case "SUCCESS":
+		case "SUCCESS", "PRODUCT_INFORMATION_INCOMPLETE":
 			result.Yes()
 		case "GEO_CHECK_FAIL":
 			result.No()

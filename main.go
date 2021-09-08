@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	version     = "0.0.5"
+	version     = "0.0.7"
 	modeChecker = "checker"
 	modeMonitor = "monitor"
 )
@@ -187,6 +187,11 @@ func runMonitor() {
 						for {
 							res := mediaFunc(mc)
 							res.Task = tn
+
+							mc.Logger.WithFields(log.Fields{
+								"result":  res.Result,
+								"message": res.Message,
+							}).Infoln("done")
 							result <- res
 							logger.WithField("interval", mc.Interval).Infoln("waiting")
 							time.Sleep(time.Duration(mc.Interval) * time.Second)

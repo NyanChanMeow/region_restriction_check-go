@@ -133,6 +133,7 @@ type Media struct {
 	Enabled  bool              `json:"enabled"`
 	URL      string            `json:"-"`
 	Method   string            `json:"method"`
+	Addr     string            `json:"addr"`
 	Headers  map[string]string `json:"headers"`
 	Body     string            `json:"body"`
 	DNS      string            `json:"dns"`
@@ -173,8 +174,8 @@ func (m *Media) UnmarshalJSON(data []byte) error {
 			err = json.Unmarshal(v, &m.Headers)
 		case "interval":
 			err = json.Unmarshal(v, &m.Interval)
-		case "url":
-			err = json.Unmarshal(v, &m.URL)
+		case "addr":
+			err = json.Unmarshal(v, &m.Addr)
 		}
 		if err != nil {
 			return err
@@ -202,7 +203,15 @@ func (m *Media) Do() (*fasthttp.Response, error) {
 			},
 		},
 	}
-	client := fasthttp.Client{Dial: dialer.Dial}
+
+	client := fasthttp.Client{
+		Dial: func(addr string) (net.Conn, error) {
+			if len(m.Addr) > 0 {
+				addr = m.Addr
+			}
+			return dialer.Dial(addr)
+		},
+	}
 	client.NoDefaultUserAgentHeader = true
 
 	req := fasthttp.AcquireRequest()

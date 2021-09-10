@@ -10,7 +10,7 @@ import (
 func Check4GTV(m *Media) (result *CheckResult) {
 	m.Method = "POST"
 	m.URL = "https://api2.4gtv.tv//Vod/GetVodUrl3"
-	m.Headers[fasthttp.HeaderContentType] = ContentTypeJSON
+	m.Headers[fasthttp.HeaderContentType] = "application/x-www-form-urlencoded"
 	m.Logger.Infoln("running")
 
 	if _, ok := m.Headers["User-Agent"]; !ok {
@@ -29,7 +29,7 @@ func Check4GTV(m *Media) (result *CheckResult) {
 	}
 	defer fasthttp.ReleaseResponse(resp)
 
-	if resp.StatusCode() != fasthttp.StatusAccepted {
+	if resp.StatusCode() != fasthttp.StatusOK {
 		result.UnexpectedStatusCode(resp.StatusCode())
 		return
 	}

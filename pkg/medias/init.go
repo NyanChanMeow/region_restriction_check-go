@@ -52,16 +52,17 @@ var (
 	}
 
 	mediasTW = map[string]func(*Media) *CheckResult{
-		"BahamutAnime": CheckBahamutAnime,
-		"BilibiliTW":   CheckBilibiliTW,
-		"HBOGoAsia":    CheckHBOGoAsia,
-		"KKTV":         CheckKKTV,
-		"LiTV":         CheckLiTV,
-		"4GTV":         Check4GTV,
-		"LineTV":       CheckLineTV,
-		"HamiVideo":    CheckHamiVideo,
-		"Catchplay":    CheckCatchplay,
-		"ElevenSports": CheckElevenSports,
+		"BahamutAnime":   CheckBahamutAnime,
+		"BilibiliHKMCTW": CheckBilibiliHKMCTW,
+		"BilibiliTW":     CheckBilibiliTW,
+		"HBOGoAsia":      CheckHBOGoAsia,
+		"KKTV":           CheckKKTV,
+		"LiTV":           CheckLiTV,
+		"4GTV":           Check4GTV,
+		"LineTV":         CheckLineTV,
+		"HamiVideo":      CheckHamiVideo,
+		"Catchplay":      CheckCatchplay,
+		"ElevenSports":   CheckElevenSports,
 	}
 
 	MediaFuncs = map[string]map[string]func(*Media) *CheckResult{

@@ -4,6 +4,10 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/NyanChanMeow/region_restriction_check-go)](https://goreportcard.com/report/github.com/NyanChanMeow/region_restriction_check-go) ![Build Nightly](https://github.com/NyanChanMeow/region_restriction_check-go/actions/workflows/build-nightly-ci.yml/badge.svg)
 
 ## 支持列表
+### Global
+- Dazn
+- Netflix
+
 ### Asia
 - HBOGo Asia
 

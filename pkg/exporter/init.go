@@ -19,5 +19,5 @@ var (
 	rrcStatus = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "rrc_unblock_status",
 		Help: "Region Restriction Check Status",
-	}, []string{"region", "media", "media_readable", "task"})
+	}, []string{"media", "media_readable", "task"})
 )

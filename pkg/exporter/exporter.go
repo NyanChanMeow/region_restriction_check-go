@@ -9,7 +9,6 @@ import (
 
 func HandleStatusUpdate(result *medias.CheckResult) {
 	rrcStatus.WithLabelValues(
-		result.Region,
 		result.Media,
 		medias.HumanReadableNames[result.Media],
 		result.Task,

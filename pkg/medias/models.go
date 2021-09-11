@@ -57,19 +57,19 @@ func (c *CheckResult) OriginalsOnly() {
 	c.Result = CheckResultOriginalsOnly
 }
 
-func (c *CheckResult) Unexpected(msg interface{}) {
+func (c *CheckResult) Unexpected(msg ...interface{}) {
 	c.Result = CheckResultUnexpected
-	c.Message = fmt.Sprint(msg)
+	c.Message = fmt.Sprint(msg...)
 }
 
-func (c *CheckResult) UnexpectedStatusCode(code interface{}) {
+func (c *CheckResult) UnexpectedStatusCode(code int) {
 	c.Result = CheckResultUnexpected
-	c.Message = fmt.Sprintf("status code: %s", fmt.Sprint(code))
+	c.Message = fmt.Sprintf("status code: %d", code)
 }
 
-func (c *CheckResult) Failed(msg interface{}) {
+func (c *CheckResult) Failed(msg ...interface{}) {
 	c.Result = CheckResultFailed
-	c.Message = fmt.Sprint(msg)
+	c.Message = fmt.Sprint(msg...)
 }
 
 type CheckResultSlice []*CheckResult

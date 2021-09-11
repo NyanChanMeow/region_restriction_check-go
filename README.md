@@ -7,6 +7,8 @@
 ### Global
 - Dazn
 - Netflix
+- Viu.com
+- TVBAnywhere
 
 ### Asia
 - HBOGo Asia

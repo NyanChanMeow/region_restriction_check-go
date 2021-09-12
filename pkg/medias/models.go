@@ -100,16 +100,21 @@ func (c *CheckResultSlice) PrintTo(writer io.Writer) {
 	lastRegion := ""
 	lastOttType := ""
 	for _, res := range *c {
-		if lastRegion != res.Region {
+		region, ok := HumanReadableRegions[res.Region]
+		if !ok {
+			region = res.Region
+		}
+
+		if lastRegion != region {
 			w.Flush()
-			fmt.Fprintf(writer, "\n==========[ %s ]==========\n", res.Region)
-			lastRegion = res.Region
+			fmt.Fprintf(writer, "\n==========[ %s ]==========\n", region)
+			lastRegion = region
 		}
 		if lastOttType != res.Type {
 			lastOttType = res.Type
 			if lastOttType != "" {
 				w.Flush()
-				fmt.Fprintf(writer, "\n------< %s - %s >------\n", res.Region, res.Type)
+				fmt.Fprintf(writer, "\n------< %s - %s >------\n", region, res.Type)
 			}
 		}
 

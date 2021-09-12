@@ -65,11 +65,31 @@ var (
 		"ElevenSports":   CheckElevenSports,
 	}
 
+	mediasNA = map[string]func(*Media) *CheckResult{
+		"Fox": CheckFox,
+		// "HuluUS": CheckHuluUS,
+		// "EPIX": CheckEPIX,
+		// "Starz": CheckStarz,
+		"HBONow": CheckHBONow,
+		"HBOMax": CheckHBOMax,
+	}
+
 	MediaFuncs = map[string]map[string]func(*Media) *CheckResult{
 		"Global": mediasGlobal,
 		"JP":     mediasJP,
 		"TW":     mediasTW,
 		"HK":     mediasHK,
+		"NA":     mediasNA,
+	}
+
+	HumanReadableRegions = map[string]string{
+		"Global":   "Global",
+		"Asia":     "Asia",
+		"HK_MC_TW": "HongKong/Macua/Taiwan",
+		"JP":       "Japan",
+		"TW":       "Taiwan",
+		"HK":       "HongKong",
+		"NA":       "North America",
 	}
 
 	HumanReadableNames = map[string]string{
@@ -109,5 +129,9 @@ var (
 		"HamiVideo":    "HamiVideo",
 		"Catchplay":    "Catchplay",
 		"ElevenSports": "Eleven Sports",
+		// NA
+		"HBOMax": "HBO Max",
+		"HBONow": "HBO Now",
+		"Fox":    "Fox",
 	}
 )

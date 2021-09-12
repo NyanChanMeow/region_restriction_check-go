@@ -13,7 +13,7 @@
 ### Asia
 - HBOGo Asia
 
-### JP
+### Japan
 - 公主连接
 - 赛马娘
 - KanColle
@@ -29,7 +29,7 @@
 - Fuji TV
 - Radiko
 
-### TW
+### Taiwan
 - 巴哈姆特动画疯
 - Bilibili
 - 4GTV
@@ -40,11 +40,16 @@
 - LiTV
 - Eleven Sports
 
-### HK
+### HongKong
 - Bilibili
 - MyTVSuper
 - NowE
 - ViuTV
+
+### North America
+- HBONow
+- HBOMax
+- Fox
 
 更多内容待添加
 

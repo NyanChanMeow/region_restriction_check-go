@@ -6,6 +6,7 @@ import (
 
 func CheckKonosubaFD(m *Media) (result *CheckResult) {
 	m.URL = "https://api.konosubafd.jp/api/masterlist"
+	m.Method = "POST"
 	m.Logger.Infoln("running")
 
 	if _, ok := m.Headers["User-Agent"]; !ok {
@@ -22,7 +23,7 @@ func CheckKonosubaFD(m *Media) (result *CheckResult) {
 	defer fasthttp.ReleaseResponse(resp)
 
 	switch resp.StatusCode() {
-	case fasthttp.StatusInternalServerError:
+	case fasthttp.StatusOK:
 		result.Yes()
 	case fasthttp.StatusForbidden:
 		result.No()
